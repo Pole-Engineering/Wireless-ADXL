@@ -44,7 +44,7 @@ You should be connected successfully
 ### Klipper setup:
 
 - Run this command
-```wget -qO- d.arteus.pw/install_wadxl.sh | bash```
+```wget -qO- https://raw.githubusercontent.com/Pole-Engineering/Wireless-ADXL/main/software/install_wadxl.sh | bash```
 - Klipper config:
 ```[wadxl]
 ip = optional, entering the ip manually is better

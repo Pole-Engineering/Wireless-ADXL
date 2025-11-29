@@ -66,7 +66,7 @@ EOF
 }
 
 # Variables
-WEBSERVER_URL="https://d.pole.engineering/standalone.py"  
+WEBSERVER_URL="https://raw.githubusercontent.com/Pole-Engineering/Wireless-ADXL/main/software/standalone.py"  
 KLIPPER_DIR="$HOME/klipper"
 KLIPPY_EXTRAS_DIR="$KLIPPER_DIR/klippy/extras"
 WADXL_FILE="wadxl.py"
