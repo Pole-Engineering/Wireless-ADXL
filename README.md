@@ -24,6 +24,55 @@ firmware: MCU firmware
 host: Python client for Klipper integration  
 docs: Setup guide and usage notes
 
+
+## Docs:
+
+### First the setup
+
+1) Power it with a 5V source or battery using the battery mounting holes
+2) A wireless network named WADXL should appear, connect to it
+3) You should be redirected to wifi setup page, if you don't, go to 192.168.4.1
+4) Enter your ssid and password 
+
+You should be connected successfully
+
+### The OTA updater GUI :
+
+- Go to wadxl.local (if that doesn't work, find it's ip in your router) you should see the ota page, that's where you can update it.
+
+### Klipper setup:
+
+- Run this command
+```wget -qO- d.arteus.pw/install_wadxl.sh | bash```
+- Klipper config:
+```[wadxl]
+ip = optional, entering the ip manually is better
+
+[resonance_tester]
+probe_points = 117.5,117.5, 10
+accel_chip = wadxl
+accel_per_hz = 160
+min_freq = 20
+max_freq = 120
+```
+### What does various patterns of LEDs mean
+
+**RED on GREEN off:**
+-Faulty ADXL or Error
+**RED off GREEN on:**
+-Standby mode
+**RED blinking GREEN off:**
+-Low voltage, charge 
+**RED off GREEN blinking:**
+-Sampling in progress
+**RED blinking GREEN blinking:**
+-Connecting to wifi
+
+
+No leds will turn on before the initial setup when you boot it first time.
+
+## Please note that this version is actually updated and not tested (it has better battery protection implementation.) so, if you spot some mistakes, please create an issue on github.
+
 ## License
 
 Shield: [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
