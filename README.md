@@ -37,6 +37,7 @@ docs: Setup guide and usage notes
 You should be connected successfully
 
 ### The OTA updater GUI :
+![gui](./gui.png)
 
 - Go to wadxl.local (if that doesn't work, find it's ip in your router) you should see the ota page, that's where you can update it.
 
