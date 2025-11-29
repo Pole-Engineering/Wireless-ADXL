@@ -1,10 +1,10 @@
 # Wireless ADXL for Klipper
 
-This is the public release of my wireless ADXL project developed for Klipper resonance testing. I originally built this as a commercial product but due to budget restrictions I could not move it into production. Instead of shelving it, I decided to release everything as open source so the community can benefit from it.
+## This is the public release of my wireless ADXL project developed for Klipper resonance testing. I originally built this as a commercial product but due to budget restrictions I could not move it into production. Instead of shelving it, I decided to release everything as open source so the community can benefit from it.
 The full project is now available open sourced. Hardware, firmware and host-side tools are included. Anyone is free to use, modify and build on top of it.
 
 
-If you find the project useful and want to support future work, you can donate here:  
+## If you find the project useful and want to support future work, you can donate here:  
 <a href="https://www.buymeacoffee.com/arteuspw" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
 ![image](./wadxl.jpg)
