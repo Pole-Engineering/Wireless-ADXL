@@ -1,7 +1,7 @@
 # Wireless ADXL for Klipper
 
-## This is the public release of my wireless ADXL project developed for Klipper resonance testing. I originally built this as a commercial product but due to budget restrictions I could not move it into production. Instead of shelving it, I decided to release everything as open source so the community can benefit from it.
-The full project is now available open sourced. Hardware, firmware and host-side tools are included. Anyone is free to use, modify and build on top of it.
+## This is the public release of my wireless ADXL project developed for Klipper resonance testing. I originally built this as a commercial product but due to budget restrictions I could not move it into production. Instead of shelving it, I decided to release everything here so the community can benefit from it.
+The full projects source is now fully available. Hardware, firmware and host-side tools are included.
 
 
 ## If you find the project useful and want to support future work, you can donate here:  
