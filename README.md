@@ -46,7 +46,8 @@ You should be connected successfully
 - Run this command
 ```wget -qO- https://raw.githubusercontent.com/Pole-Engineering/Wireless-ADXL/main/software/install_wadxl.sh | bash```
 - Klipper config:
-```[wadxl]
+```
+[wadxl]
 ip = optional, entering the ip manually is better
 
 [resonance_tester]
