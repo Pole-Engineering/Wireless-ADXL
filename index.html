@@ -321,7 +321,7 @@ window.startFlash = async function () {
       flashFreq:  'keep',
       flashMode:  'keep',
       eraseAll:   false,
-      compress:   true,
+      compress:   false,
       reportProgress(_, written, total) {
         setProgress(30 + (written / total) * 65, `Writing... ${Math.round(written/total*100)}%`);
       },
