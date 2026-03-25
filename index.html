@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WADXL Flasher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0a0a0f;
+    --surface:  #11111a;
+    --border:   #1e1e2e;
+    --accent:   #00e5ff;
+    --accent2:  #7b61ff;
+    --green:    #00ff9d;
+    --red:      #ff4757;
+    --yellow:   #ffd32a;
+    --text:     #e0e0f0;
+    --dim:      #5a5a7a;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 2rem 1rem; overflow-x: hidden;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px; opacity: 0.4; pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; top: -20%; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(0,229,255,0.06) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  .container { position: relative; z-index: 1; width: 100%; max-width: 560px; }
+  .header { margin-bottom: 2.5rem; animation: fadeDown 0.6s ease both; }
+  .subtitle { font-size: 0.72rem; color: var(--dim); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 0.25rem; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 2rem; animation: fadeUp 0.6s ease 0.1s both;
+  }
+  .fw-info {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.875rem 1rem;
+    background: rgba(0,229,255,0.04); border: 1px solid rgba(0,229,255,0.12);
+    border-radius: 10px; margin-bottom: 1.5rem;
+  }
+  .fw-label { font-size: 0.68rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.1em; }
+  .fw-version { font-size: 0.85rem; color: var(--accent); font-weight: 600; }
+  .fw-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; box-shadow: 0 0 8px var(--green); flex-shrink: 0; }
+  .flash-btn {
+    width: 100%; padding: 1rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 10px; color: #000;
+    font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800;
+    letter-spacing: 0.04em; cursor: pointer; transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .flash-btn::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .flash-btn:hover::before { opacity: 1; }
+  .flash-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(0,229,255,0.25); }
+  .flash-btn:active { transform: translateY(0); }
+  .flash-btn:disabled { background: var(--border); color: var(--dim); cursor: not-allowed; transform: none; box-shadow: none; }
+  .progress-wrap { margin-top: 1.25rem; display: none; }
+  .progress-wrap.visible { display: block; }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+  .progress-label { font-size: 0.72rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.1em; }
+  .progress-pct { font-size: 0.75rem; color: var(--accent); font-weight: 600; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px; transition: width 0.3s ease;
+    box-shadow: 0 0 10px rgba(0,229,255,0.5);
+  }
+  .log-wrap { margin-top: 1.25rem; display: none; }
+  .log-wrap.visible { display: block; }
+  .log-title { font-size: 0.68rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem; }
+  .log-box {
+    background: #070710; border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.875rem 1rem; height: 200px; overflow-y: auto;
+    font-size: 0.72rem; line-height: 1.7; scroll-behavior: smooth;
+  }
+  .log-box::-webkit-scrollbar { width: 4px; }
+  .log-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .log-line { white-space: pre-wrap; word-break: break-all; }
+  .log-line.info { color: var(--dim); }
+  .log-line.ok   { color: var(--green); }
+  .log-line.err  { color: var(--red); }
+  .log-line.warn { color: var(--yellow); }
+  .log-line.data { color: #9090b0; }
+  .status-badge {
+    display: none; margin-top: 1.25rem; padding: 0.875rem 1rem;
+    border-radius: 10px; font-size: 0.82rem; font-weight: 600;
+    align-items: center; gap: 0.625rem;
+  }
+  .status-badge.visible { display: flex; }
+  .status-badge.success { background: rgba(0,255,157,0.07); border: 1px solid rgba(0,255,157,0.2); color: var(--green); }
+  .status-badge.error   { background: rgba(255,71,87,0.07);  border: 1px solid rgba(255,71,87,0.2);  color: var(--red); }
+  .browser-warn {
+    margin-top: 1.25rem; padding: 0.875rem 1rem;
+    background: rgba(255,211,42,0.06); border: 1px solid rgba(255,211,42,0.2);
+    border-radius: 10px; font-size: 0.75rem; color: var(--yellow);
+    line-height: 1.6; display: none;
+  }
+  .browser-warn.visible { display: block; }
+  .chip-info { display: none; gap: 0.75rem; margin-bottom: 1.25rem; }
+  .chip-info.visible { display: flex; }
+  .chip-tag {
+    flex: 1; padding: 0.625rem 0.75rem;
+    background: rgba(123,97,255,0.06); border: 1px solid rgba(123,97,255,0.15);
+    border-radius: 8px; font-size: 0.7rem;
+  }
+  .chip-tag-label { color: var(--dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.2rem; font-size: 0.62rem; }
+  .chip-tag-value { color: var(--accent2); font-weight: 600; }
+  .footer { margin-top: 1.5rem; text-align: center; font-size: 0.68rem; color: var(--dim); animation: fadeUp 0.6s ease 0.3s both; }
+  .footer a { color: var(--dim); text-decoration: none; }
+  .footer a:hover { color: var(--accent); }
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(16px);  } to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="subtitle">WADXL Flasher · Pole Engineering</div>
+  </div>
+  <div class="card">
+    <div class="fw-info">
+      <div>
+        <div class="fw-label">Firmware</div>
+        <div class="fw-version">V1 — firmware.bin</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <span style="font-size:0.7rem;color:var(--dim);">Ready</span>
+        <div class="fw-dot"></div>
+      </div>
+    </div>
+    <div class="chip-info" id="chipInfo">
+      <div class="chip-tag">
+        <div class="chip-tag-label">Chip</div>
+        <div class="chip-tag-value" id="chipModel">—</div>
+      </div>
+      <div class="chip-tag">
+        <div class="chip-tag-label">MAC</div>
+        <div class="chip-tag-value" id="chipMac">—</div>
+      </div>
+      <div class="chip-tag">
+        <div class="chip-tag-label">Size</div>
+        <div class="chip-tag-value" id="chipFlash">—</div>
+      </div>
+    </div>
+    <button class="flash-btn" id="flashBtn" onclick="startFlash()">Connect &amp; Flash</button>
+    <div class="browser-warn" id="browserWarn">
+      ⚠ Web Serial API not supported.<br>
+      Please use <strong>Chrome</strong> or <strong>Edge</strong> (desktop).
+    </div>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-header">
+        <span class="progress-label" id="progressLabel">Connecting...</span>
+        <span class="progress-pct" id="progressPct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div class="log-wrap" id="logWrap">
+      <span class="log-title">Output</span>
+      <div class="log-box" id="logBox"></div>
+    </div>
+    <div class="status-badge" id="statusBadge">
+      <span id="statusIcon"></span>
+      <span id="statusMsg"></span>
+    </div>
+  </div>
+  <div class="footer">
+    <a href="https://github.com/Pole-Engineering/Wireless-ADXL" target="_blank">
+      github.com/Pole-Engineering/Wireless-ADXL
+    </a>
+    &nbsp;·&nbsp; Chrome / Edge only
+  </div>
+</div>
+
+<script type="module">
+import { ESPLoader, Transport } from 'https://unpkg.com/esptool-js@0.4.3/bundle.js';
+
+const FIRMWARE_URL = './firmware/firmware.bin';
+const FLASH_ADDR   = 0x0;
+
+const flashBtn      = document.getElementById('flashBtn');
+const progressWrap  = document.getElementById('progressWrap');
+const progressFill  = document.getElementById('progressFill');
+const progressLabel = document.getElementById('progressLabel');
+const progressPct   = document.getElementById('progressPct');
+const logWrap       = document.getElementById('logWrap');
+const logBox        = document.getElementById('logBox');
+const statusBadge   = document.getElementById('statusBadge');
+const statusIcon    = document.getElementById('statusIcon');
+const statusMsg     = document.getElementById('statusMsg');
+const chipInfo      = document.getElementById('chipInfo');
+const browserWarn   = document.getElementById('browserWarn');
+
+if (!('serial' in navigator)) {
+  browserWarn.classList.add('visible');
+  flashBtn.disabled = true;
+}
+
+function log(msg, type = 'data') {
+  const line = document.createElement('div');
+  line.className = `log-line ${type}`;
+  line.textContent = msg;
+  logBox.appendChild(line);
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+function setProgress(pct, label) {
+  progressFill.style.width = pct + '%';
+  progressPct.textContent  = Math.round(pct) + '%';
+  if (label) progressLabel.textContent = label;
+}
+
+function showStatus(type, icon, msg) {
+  statusBadge.className = `status-badge visible ${type}`;
+  statusIcon.textContent = icon;
+  statusMsg.textContent  = msg;
+}
+
+async function fetchFirmware() {
+  log('Loading firmware...', 'info');
+  setProgress(5, 'Loading firmware...');
+  try {
+    const res = await fetch(FIRMWARE_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status} — is firmware.bin in the repo root?`);
+    const buf = await res.arrayBuffer();
+    log(`Firmware loaded — ${(buf.byteLength / 1024).toFixed(1)} KB`, 'ok');
+    // Convert ArrayBuffer → binary string (required by esptool-js)
+    const u8 = new Uint8Array(buf);
+    let bin = '';
+    // chunk to avoid stack overflow on large files
+    const CHUNK = 8192;
+    for (let i = 0; i < u8.length; i += CHUNK) {
+      bin += String.fromCharCode(...u8.subarray(i, i + CHUNK));
+    }
+    return bin;
+  } catch (e) {
+    throw new Error(`Firmware fetch failed: ${e.message}`);
+  }
+}
+
+window.startFlash = async function () {
+  if (!('serial' in navigator)) return;
+
+  flashBtn.disabled = true;
+  flashBtn.textContent = 'Working...';
+  logWrap.classList.add('visible');
+  progressWrap.classList.add('visible');
+  statusBadge.classList.remove('visible');
+  chipInfo.classList.remove('visible');
+  logBox.innerHTML = '';
+
+  let transport = null;
+
+  try {
+    // 1. Pick port
+    log('Opening port selector...', 'info');
+    setProgress(2, 'Select your ESP32 port...');
+    const port = await navigator.serial.requestPort();
+
+    // 2. Load firmware (same-origin fetch, no CORS)
+    const firmwareBin = await fetchFirmware();
+    setProgress(15, 'Connecting to ESP32...');
+
+    // 3. Connect
+    log('Connecting...', 'info');
+    transport = new Transport(port, true);
+    const esploader = new ESPLoader({
+      transport,
+      baudrate: 921600,
+      romBaudrate: 115200,
+      terminal: {
+        clean()          {},
+        writeLine(data)  { if (data.trim()) log(data, 'data'); },
+        write(data)      {},
+      },
+    });
+
+    const chip = await esploader.main();
+    log(`Chip: ${chip}`, 'ok');
+    setProgress(25, `Chip: ${chip}`);
+
+    // Show MAC
+    try {
+      const mac    = await esploader.readMac();
+      const macStr = mac.map(b => b.toString(16).padStart(2,'0').toUpperCase()).join(':');
+      document.getElementById('chipModel').textContent = chip;
+      document.getElementById('chipMac').textContent   = macStr;
+      document.getElementById('chipFlash').textContent = `${(firmwareBin.length/1024).toFixed(0)} KB`;
+      chipInfo.classList.add('visible');
+      log(`MAC: ${macStr}`, 'ok');
+    } catch(_) {}
+
+    // 4. Flash
+    log('Erasing & writing...', 'info');
+    setProgress(30, 'Flashing...');
+
+    await esploader.writeFlash({
+      fileArray: [{ data: firmwareBin, address: FLASH_ADDR }],
+      flashSize:  'keep',
+      flashFreq:  'keep',
+      flashMode:  'keep',
+      eraseAll:   false,
+      compress:   true,
+      reportProgress(_, written, total) {
+        setProgress(30 + (written / total) * 65, `Writing... ${Math.round(written/total*100)}%`);
+      },
+      calculateMD5Hash: () => '',
+    });
+
+    // 5. Reboot & done
+    setProgress(100, 'Done!');
+    log('Rebooting board...', 'info');
+    await esploader.hardReset();
+    log('Done!', 'ok');
+    showStatus('success', '✓', 'Firmware flashed! Board is rebooting.');
+
+  } catch (err) {
+    log(`Error: ${err.message}`, 'err');
+    setProgress(0, 'Failed');
+    showStatus('error', '✗', err.message || 'Flash failed.');
+  } finally {
+    try { if (transport) await transport.disconnect(); } catch(_) {}
+    flashBtn.disabled = false;
+    flashBtn.textContent = 'Flash Again';
+  }
+};
+</script>
+</body>
+</html>
