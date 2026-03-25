@@ -190,7 +190,11 @@
 </div>
 
 <script type="module">
-import { ESPLoader, Transport } from 'https://unpkg.com/esptool-js@0.4.3/bundle.js';
+// Buffer polyfill for esptool-js (requires Node.js Buffer in browser)
+import { Buffer } from "https://esm.sh/buffer@6.0.3";
+window.Buffer = Buffer;
+import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.4.3/bundle.js";
+
 
 const FIRMWARE_URL = './firmware/firmware.bin';
 const FLASH_ADDR   = 0x0;
