@@ -69,6 +69,7 @@ EOF
 WEBSERVER_URL="https://raw.githubusercontent.com/Pole-Engineering/Wireless-ADXL/main/software/standalone.py"  
 KLIPPER_DIR="$HOME/klipper"
 KLIPPY_EXTRAS_DIR="$KLIPPER_DIR/klippy/extras"
+KLIPPY_ENV="$HOME/klippy-env"
 WADXL_FILE="wadxl.py"
 TEMP_FILE="/tmp/$WADXL_FILE"
 
@@ -164,6 +165,46 @@ main() {
         exit 1
     fi
 
+    # Install Python dependencies
+    print_step "Installing Python dependencies..."
+
+    # Check klippy virtual environment
+    if [ ! -f "$KLIPPY_ENV/bin/activate" ]; then
+        print_error "Klippy virtual environment not found: $KLIPPY_ENV"
+        print_status "Please ensure Klipper is properly installed with its virtual environment."
+        exit 1
+    fi
+
+    print_status "Activating klippy virtual environment..."
+    source "$KLIPPY_ENV/bin/activate"
+    if [ $? -ne 0 ]; then
+        print_error "Failed to activate klippy virtual environment"
+        exit 1
+    fi
+    print_success "Virtual environment activated"
+
+    print_status "Installing websocket-client..."
+    pip install websocket-client -q
+    if [ $? -ne 0 ]; then
+        print_error "Failed to install websocket-client"
+        deactivate
+        exit 1
+    fi
+    print_success "websocket-client installed"
+
+    print_status "Installing requests..."
+    pip install requests -q
+    if [ $? -ne 0 ]; then
+        print_error "Failed to install requests"
+        deactivate
+        exit 1
+    fi
+    print_success "requests installed"
+
+    print_status "Deactivating virtual environment..."
+    deactivate
+    print_success "Virtual environment deactivated"
+
     # Move file to klipper extras
     print_step "Installing WADXL module..."
     print_status "Moving file to: $KLIPPY_EXTRAS_DIR/$WADXL_FILE"
@@ -188,6 +229,17 @@ main() {
         exit 1
     fi
 
+    # Restart Klipper service
+    print_step "Restarting Klipper service..."
+    print_status "Running: sudo systemctl restart klipper"
+    sudo systemctl restart klipper
+    if [ $? -ne 0 ]; then
+        print_warning "Failed to restart Klipper service automatically"
+        print_status "Please restart Klipper manually: sudo systemctl restart klipper"
+    else
+        print_success "Klipper service restarted successfully"
+    fi
+
     # Installation complete
     echo
     delay
@@ -203,9 +255,7 @@ main() {
     print_warning "Next steps:"
     echo "  1. Add WADXL configuration to your printer.cfg file"
     delay
-    echo "  2. Restart Klipper service"
-    delay
-    echo "  3. Configure your wireless ADXL345 accelerometer"
+    echo "  2. Configure your wireless ADXL345 accelerometer"
     echo
     delay
     print_status "For configuration help, please refer to the WADXL documentation."
