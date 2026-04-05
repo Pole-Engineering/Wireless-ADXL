@@ -278,7 +278,8 @@ class WirelessADXL345:
         logging.info("Starting measurements")
 
         self._connect_websocket()
-
+        self._send_http_request("end")
+        time.sleep(1)
         success, response = self._send_http_request("start")
         if not success:
             raise self.printer.command_error(
