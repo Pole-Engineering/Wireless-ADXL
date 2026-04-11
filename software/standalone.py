@@ -243,15 +243,38 @@ class WirelessADXL345:
             logging.error("Error parsing WebSocket data: %s", str(e))
             self.last_error_count += 1
 
-    def _send_http_request(self, endpoint):
+    def _send_http_request(self, endpoint, retries=2, retry_delay=0.5):
         """Send HTTP request to WADXL"""
-        try:
-            url = f"http://{self.ip}:80/{endpoint}"
-            response = requests.get(url, timeout=5.0)
-            return response.status_code == 200, response.text
-        except Exception as e:
-            logging.error("HTTP request failed: %s", str(e))
-            return False, str(e)
+        success_markers = {
+            "start": "Sampling started",
+            "end": "duration",  # JSON içinde geçiyor
+        }
+        expected = success_markers.get(endpoint)
+        
+        last_error = None
+        for attempt in range(retries):
+            try:
+                url = f"http://{self.ip}:80/{endpoint}"
+                response = requests.get(url, timeout=5.0)
+                text = response.text
+                
+                if response.status_code == 200:
+                    if expected is None or expected in text:
+                        return True, text
+                    last_error = f"Unexpected response: {text}"
+                else:
+                    last_error = f"HTTP {response.status_code}: {text}"
+                    
+            except Exception as e:
+                last_error = str(e)
+                
+            logging.warning("HTTP '%s' attempt %d/%d failed: %s",
+                            endpoint, attempt + 1, retries, last_error)
+            if attempt < retries - 1:
+                time.sleep(retry_delay)
+        
+        logging.error("HTTP '%s' failed after %d attempts: %s", endpoint, retries, last_error)
+        return False, last_error
 
     def start_internal_client(self):
         """Start internal client for measurements"""
