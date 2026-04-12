@@ -299,10 +299,10 @@ class WirelessADXL345:
     def _start_measurements(self):
         """Start measurement process"""
         logging.info("Starting measurements")
-
-        self._connect_websocket()
         self._send_http_request("end")
         time.sleep(1)
+        self._connect_websocket()
+        time.sleep(0.5)
         success, response = self._send_http_request("start")
         if not success:
             raise self.printer.command_error(
